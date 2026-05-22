@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProcessBorrowingNotification;
 use App\Models\Book;
 use App\Models\Borrowing;
 use App\Models\User;
@@ -64,7 +65,7 @@ class BorrowingWebController extends Controller
         $borrowDate = now();
         $dueDate = $borrowDate->copy()->addDays((int) $validated['due_days']);
 
-        Borrowing::create([
+        $borrowing = Borrowing::create([
             'user_id' => $user->id,
             'book_id' => $book->id,
             'borrow_date' => $borrowDate,
@@ -75,8 +76,11 @@ class BorrowingWebController extends Controller
 
         $book->decrement('available');
 
+        // Dispatch queue notification
+        ProcessBorrowingNotification::dispatch($borrowing, 'borrowed');
+
         return redirect()->route('borrowings.history')
-            ->with('success', "Buku '{$book->title}' berhasil dipinjam hingga ".$dueDate->format('d-m-Y'));
+            ->with('success', "Buku '{$book->title}' berhasil dipinjam hingga " . $dueDate->format('d-m-Y'));
     }
 
     /**
@@ -92,9 +96,12 @@ class BorrowingWebController extends Controller
         $calculatedFine = $borrowing->calculateFine();
         $borrowing->markAsReturned($calculatedFine);
 
+        // Dispatch queue notification
+        ProcessBorrowingNotification::dispatch($borrowing, 'returned');
+
         $message = 'Buku berhasil dikembalikan.';
         if ($calculatedFine > 0) {
-            $message .= ' Denda: Rp '.number_format($calculatedFine, 0, ',', '.');
+            $message .= ' Denda: Rp ' . number_format($calculatedFine, 0, ',', '.');
         }
 
         return redirect()->route('borrowings.history')

@@ -2,18 +2,20 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\View\View;
 
 class AuthController extends Controller
 {
     /**
      * Show login form.
      */
-    public function showLogin()
+    public function showLogin(): View
     {
         return view('auth.login');
     }
@@ -21,7 +23,7 @@ class AuthController extends Controller
     /**
      * Handle login request.
      */
-    public function login(Request $request)
+    public function login(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'email' => 'required|email|exists:users,email',
@@ -44,7 +46,7 @@ class AuthController extends Controller
     /**
      * Show register form.
      */
-    public function showRegister()
+    public function showRegister(): View
     {
         return view('auth.register');
     }
@@ -52,7 +54,7 @@ class AuthController extends Controller
     /**
      * Handle register request.
      */
-    public function register(Request $request)
+    public function register(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -79,7 +81,7 @@ class AuthController extends Controller
     /**
      * Handle logout request.
      */
-    public function logout(Request $request)
+    public function logout(Request $request): RedirectResponse
     {
         Auth::logout();
         $request->session()->invalidate();

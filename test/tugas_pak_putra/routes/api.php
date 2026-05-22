@@ -4,7 +4,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\BorrowingController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth:sanctum', 'prefers.json'])->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
     // Book Routes
 
     Route::apiResource('books', BookController::class)->only(['index', 'show']);
